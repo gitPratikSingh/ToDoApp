@@ -1,8 +1,10 @@
+const {ObjectID} = require('mongodb');
 const {mongoose, ObjectID} = require('./db/mongoose');
 const {Todo} = require('./models/todos');
 const {user} = require('./models/users')
 const express = require('express');
 const bodyParser = require('body-parser');
+const port = process.env.PORT || 3000;
 
 var app = express();
 
@@ -47,6 +49,6 @@ app.post('/todos', (req, res)=>{
   });
 });
 
-app.listen(3000, ()=>{
-  console.log('Listening on 3000');
+app.listen(port, ()=>{
+  console.log(`Started listening at ${port}`);
 });
