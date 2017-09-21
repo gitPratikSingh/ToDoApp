@@ -1,48 +1,52 @@
-const mongoose = require('mongoose');
+const {mongoose, ObjectID} = require('./db/mongoose');
+const {Todo} = require('./models/todos');
+const {user} = require('./models/users')
+const express = require('express');
+const bodyParser = require('body-parser');
 
-mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost:27017/TodoApp');
+var app = express();
 
-var Todo = mongoose.model('Todo',{
-  text:{
-    type: String,
-    required: true,
-    minlength:1,
-    trim:true
-  },
-  completed:{
-    type: Boolean,
-    default:false
-  },
-  completedAt:{
-    type: Number,
-    default:null
-  }
+// middleware ..here bodyparser automatically calls the next()
+app.use(bodyParser.json());
+
+app.get('/todos/:id', (req, res)=>{
+  var id = req.params.id;
+   if(ObjectID.isValid(id)){
+     Todo.findById(id).then((todo)=>{
+       if(!todo){
+          res.status(404).send();
+       }else{
+         res.send({todo});
+       }
+     }).catch((e)=>{
+       res.status(404).send();
+     });
+
+   }else{
+     return res.status(404).send();
+   }
 });
 
-var newTodo = new Todo({
-  text:'cook dinner'
+app.get('/todos', (req, res)=>{
+  Todo.find().then((todos)=>{
+    res.send({todos});
+  },(e)=>{
+    res.status(400).send(e);
+  })
 });
 
-newTodo.save().then((doc)=>{
-  console.log('Document saved :', doc);
-}, (e)=>{
-  console.log('Error:', e);
-})
+app.post('/todos', (req, res)=>{
+  var newTodo = new Todo({
+    text: req.body.text
+  });
 
-var user = mongoose.model('user', {
-  email:{
-    required: true,
-    minlength:1,
-    type:String,
-    trim:true
-  }
+  newTodo.save().then((doc)=>{
+    res.status(200).send(doc);
+  }, (e)=>{
+    res.status(400).send(e);
+  });
 });
 
-var newUser = new user({
-  email:' abs @ g.com '
-});
-
-newUser.save().then((doc)=>{
-  console.log(doc);
+app.listen(3000, ()=>{
+  console.log('Listening on 3000');
 });
