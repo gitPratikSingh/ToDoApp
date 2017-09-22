@@ -1,5 +1,5 @@
 const {ObjectID} = require('mongodb');
-const {mongoose} = require('./db/mongoose');
+const {mongoose} = require('./db/mongoose.js');
 const {Todo} = require('./models/todos');
 const {user} = require('./models/users')
 const express = require('express');
