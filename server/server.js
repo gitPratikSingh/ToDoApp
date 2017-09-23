@@ -21,7 +21,8 @@ app.get('/todos/:id', (req, res)=>{
          res.send({todo});
        }
      }).catch((e)=>{
-       res.status(404).send();
+      // send empty body on err
+       res.status(400).send();
      });
 
    }else{
@@ -47,6 +48,24 @@ app.post('/todos', (req, res)=>{
   }, (e)=>{
     res.status(400).send(e);
   });
+});
+
+app.delete('/todos/:id', (req, res)=>{
+  var id = req.params.id;
+  // validate
+  if(ObjectID.isValid(id)){
+    Todo.findByIdAndRemove({_id:id}).then((deletedItem)=>{
+      if(deletedItem)
+        res.send({deletedItem});
+      else
+        res.status(404).send();
+      }), (err)=>{
+        res.status(404).send();
+      }
+  }
+  else{
+    res.status(404).send();
+  }
 });
 
 app.listen(port, ()=>{
