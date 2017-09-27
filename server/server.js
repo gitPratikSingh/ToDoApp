@@ -2,6 +2,7 @@ const {ObjectID} = require('mongodb');
 const {mongoose} = require('./db/mongoose');
 const {Todo} = require('./models/todos');
 const {user} = require('./models/users')
+const {authenticate} = require('./middleware/authenticate');
 const express = require('express');
 const bodyParser = require('body-parser');
 const _ = require('lodash');
@@ -111,6 +112,10 @@ app.post('/users', (req, res)=>{
     res.status(400).send(_.pick(e, ['code', 'index', 'errmsg']));
   })
 
+});
+
+app.get('/users/me', authenticate, (req, res)=>{
+  res.send(req.user)
 });
 
 app.listen(port, ()=>{
