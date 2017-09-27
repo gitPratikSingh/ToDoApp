@@ -111,7 +111,19 @@ app.post('/users', (req, res)=>{
   .catch((e)=>{
     res.status(400).send(_.pick(e, ['code', 'index', 'errmsg']));
   })
+});
 
+app.post('/user/login', (req, res)=>{
+  var body = _.pick(req.body, ['email', 'password']);
+
+  user.findByCredentials(body.email, body.password).then((user)=>{
+    return user.generateAuthToken().then((token)=>{
+      res.header('x-auth',token).send(user);
+    })
+
+  }).catch((e)=>{
+    res.status(401).send();
+  });
 });
 
 app.get('/users/me', authenticate, (req, res)=>{
