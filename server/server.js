@@ -13,10 +13,13 @@ var app = express();
 // middleware ..here bodyparser automatically calls the next()
 app.use(bodyParser.json());
 
-app.get('/todos/:id', (req, res)=>{
+app.get('/todos/:id', authenticate, (req, res)=>{
   var id = req.params.id;
    if(ObjectID.isValid(id)){
-     Todo.findById(id).then((todo)=>{
+     Todo.findOne({
+       _id: id,
+       _createdBy: req.user._id
+     }).then((todo)=>{
        if(!todo){
           res.status(404).send();
        }else{
@@ -32,17 +35,18 @@ app.get('/todos/:id', (req, res)=>{
    }
 });
 
-app.get('/todos', (req, res)=>{
-  Todo.find().then((todos)=>{
+app.get('/todos', authenticate, (req, res)=>{
+  Todo.find({_createdBy: req.user._id}).then((todos)=>{
     res.send({todos});
   },(e)=>{
     res.status(400).send(e);
   })
 });
 
-app.post('/todos', (req, res)=>{
+app.post('/todos', authenticate, (req, res)=>{
   var newTodo = new Todo({
-    text: req.body.text
+    text: req.body.text,
+    _createdBy: req.user._id
   });
 
   newTodo.save().then((doc)=>{
@@ -52,11 +56,14 @@ app.post('/todos', (req, res)=>{
   });
 });
 
-app.delete('/todos/:id', (req, res)=>{
+app.delete('/todos/:id', authenticate, (req, res)=>{
   var id = req.params.id;
   // validate
   if(ObjectID.isValid(id)){
-    Todo.findByIdAndRemove({_id:id}).then((deletedItem)=>{
+    Todo.findOneAndRemove({
+      _id:id,
+      _createdBy: req.user._id
+    }).then((deletedItem)=>{
       if(deletedItem)
         res.send({deletedItem});
       else
@@ -72,7 +79,7 @@ app.delete('/todos/:id', (req, res)=>{
   }
 });
 
-app.patch('/todos/:id', (req, res)=>{
+app.patch('/todos/:id', authenticate, (req, res)=>{
   var id = req.params.id;
   if(!ObjectID.isValid(id)){
     res.status(404).send();
@@ -87,7 +94,9 @@ app.patch('/todos/:id', (req, res)=>{
     body.completedAt = null;
   }
 
-  Todo.findByIdAndUpdate(id, {$set: body}, {new:true}).then((todo)=>{
+  Todo.findOneAndUpdate({
+    _id:id,
+    _createdBy:req.user._id}, {$set: body}, {new:true}).then((todo)=>{
         if(!todo){
           res.status(404).send();
         }
@@ -128,6 +137,14 @@ app.post('/user/login', (req, res)=>{
 
 app.get('/users/me', authenticate, (req, res)=>{
   res.send(req.user)
+});
+
+app.delete('/users/me/token', authenticate, (req, res)=>{
+  req.user.removeToken(req.token).then(()=>{
+    res.status(200).send();
+  }).catch((e)=>{
+    res.status(400).send();
+  })
 });
 
 app.listen(port, ()=>{

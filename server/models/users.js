@@ -107,6 +107,15 @@ userSchema.statics.findByToken = function(token) {
     'tokens.access':decoded.access
   })
 }
+// instamce method
+userSchema.methods.removeToken=function(token){
+  var user = this;
+  return user.update({
+    $pull:{
+      tokens:{token:token}
+    }
+  });
+};
 
 var user = mongoose.model('user', userSchema);
 module.exports = {user};
