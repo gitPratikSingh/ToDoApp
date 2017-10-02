@@ -6,12 +6,17 @@ const {authenticate} = require('./middleware/authenticate');
 const express = require('express');
 const bodyParser = require('body-parser');
 const _ = require('lodash');
+var path = require('path');
 const port = process.env.PORT || 3000;
 
 var app = express();
 
 // middleware ..here bodyparser automatically calls the next()
 app.use(bodyParser.json());
+
+app.get('/', function(req, res) {
+    res.sendFile(path.join(__dirname + '/static/index.html'));
+});
 
 app.get('/todos/:id', authenticate, (req, res)=>{
   var id = req.params.id;
